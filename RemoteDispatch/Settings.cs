@@ -85,9 +85,21 @@ namespace DvMod.RemoteDispatch
             {
                 this.name = name;
             }
+
+            public PlayerPermissions ShallowCopy()
+            {
+                return (PlayerPermissions)MemberwiseClone();
+            }
         }
 
         public readonly List<PlayerPermissions> permissions = new List<PlayerPermissions>();
+        public PlayerPermissions defaultPermissions = new PlayerPermissions{
+            name = "Default",
+            canToggleJunctions =  true,
+            canControlLocomotives = true,
+            canSeePlayerBlips = true,
+            canSeeLocomotives = true
+        };
 
         public Permissions()
         {
@@ -116,7 +128,10 @@ namespace DvMod.RemoteDispatch
         {
             if (!permissions.Any(p => p.name == username))
             {
-                permissions.Add(new PlayerPermissions(username));
+                var clonedPermissions = defaultPermissions.ShallowCopy();
+                clonedPermissions.name = username;
+
+                permissions.Add(clonedPermissions);
                 permissions.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.name, b.name));
             }
         }
@@ -138,6 +153,7 @@ namespace DvMod.RemoteDispatch
         {
             GUILayout.BeginVertical();
             GUILayout.Label(label);
+            action(defaultPermissions);
             foreach (var p in permissions)
                 action(p);
             GUILayout.EndVertical();

@@ -52,7 +52,8 @@ namespace DvMod.RemoteDispatch
                     if (Main.settings.permissions.CanSeePlayerBlips(username))
                     {
                         pendingTags.Add("player");
-                    } else
+                    }
+                    else
                     {
                         pendingTags.Add("playerNull");
                     }
@@ -101,9 +102,9 @@ namespace DvMod.RemoteDispatch
                 if (!allSessions.TryGetValue(sessionId, out session))
                 {
                     Main.Log($"Starting new session {sessionId} for user {username}");
+                    OnSessionStarted?.Invoke(username);
                     session = new Session(username);
                     allSessions.Add(sessionId, session);
-                    OnSessionStarted?.Invoke(username);
                 }
             }
 
