@@ -35,3 +35,5 @@ Frontend uses [Leaflet.js](https://leafletjs.com)
 # Contributors
 
 @radostin04 - Server based permission for player icons and locomotive visibility
+
+@ZionFox - Static map enhancements like big yard names, yard building icons, track name colours and layering fixes
