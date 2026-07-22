@@ -109,10 +109,12 @@ namespace DvMod.RemoteDispatch
 
 		private static void Start()
 		{
+			// Start() is only called once WorldStreamingInit.IsLoaded is true
 			ConnectToPersistentJobs();
 			HttpServer.Create();
 			Updater.Create();
 			CarUpdater.Start();
+			SignalsShim.Initialize();
 		}
 
 		private static void Stop()
@@ -120,6 +122,7 @@ namespace DvMod.RemoteDispatch
 			CarUpdater.Stop();
 			Updater.Destroy();
 			HttpServer.Destroy();
+			SignalsShim.Teardown();
 			DisconnectFromPersistentJobs();
 		}
 
