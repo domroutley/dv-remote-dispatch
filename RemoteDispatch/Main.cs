@@ -6,12 +6,12 @@ using UnityModManagerNet;
 
 namespace DvMod.RemoteDispatch
 {
-    [EnableReloading]
-    public static class Main
-    {
-        public static UnityModManager.ModEntry? mod;
+	[EnableReloading]
+	public static class Main
+	{
+		public static UnityModManager.ModEntry? mod;
 
-        public static Settings settings = new Settings();
+		public static Settings settings = new Settings();
 		public static bool enabled;
 		public static bool PersistentJobsHooked;
 		private static object[]? attachedJobChangedHandler;
@@ -22,60 +22,60 @@ namespace DvMod.RemoteDispatch
 		public static FieldInfo? PersJobsTrainCarTypeToInterCouplerDistanceDict;
 
 		static public bool Load(UnityModManager.ModEntry modEntry)
-        {
-            mod = modEntry;
+		{
+			mod = modEntry;
 
-            try
-            {
-                var loaded = Settings.Load<Settings>(modEntry);
-                if (loaded.version == modEntry.Info.Version)
-                    settings = loaded;
-            }
-            catch
-            {
-            }
+			try
+			{
+				var loaded = Settings.Load<Settings>(modEntry);
+				if (loaded.version == modEntry.Info.Version)
+					settings = loaded;
+			}
+			catch
+			{
+			}
 
-            mod.OnGUI = OnGUI;
-            mod.OnSaveGUI = OnSaveGUI;
-            mod.OnToggle = OnToggle;
+			mod.OnGUI = OnGUI;
+			mod.OnSaveGUI = OnSaveGUI;
+			mod.OnToggle = OnToggle;
 
-            return true;
-        }
+			return true;
+		}
 
-        private static void OnGUI(UnityModManager.ModEntry modEntry)
-        {
-            settings.Draw();
-        }
+		private static void OnGUI(UnityModManager.ModEntry modEntry)
+		{
+			settings.Draw();
+		}
 
-        private static void OnSaveGUI(UnityModManager.ModEntry modEntry)
-        {
-            settings.Save(modEntry);
-            Sessions.AddTag("cars");
-        }
+		private static void OnSaveGUI(UnityModManager.ModEntry modEntry)
+		{
+			settings.Save(modEntry);
+			Sessions.AddTag("cars");
+		}
 
-        private static bool OnToggle(UnityModManager.ModEntry modEntry, bool value)
-        {
-            Harmony harmony = new Harmony(modEntry.Info.Id);
+		private static bool OnToggle(UnityModManager.ModEntry modEntry, bool value)
+		{
+			Harmony harmony = new Harmony(modEntry.Info.Id);
 
-            if (value)
-            {
-                harmony.PatchAll();
-                WorldStreamingInit.LoadingFinished += Start;
-                UnloadWatcher.UnloadRequested += Stop;
-                if (WorldStreamingInit.Instance && WorldStreamingInit.IsLoaded)
-                {
-                    Start();
-                }
-            }
-            else
-            {
-                Stop();
-                UnloadWatcher.UnloadRequested -= Stop;
-                WorldStreamingInit.LoadingFinished -= Start;
-                harmony.UnpatchAll(modEntry.Info.Id);
-            }
-            return true;
-        }
+			if (value)
+			{
+				harmony.PatchAll();
+				WorldStreamingInit.LoadingFinished += Start;
+				UnloadWatcher.UnloadRequested += Stop;
+				if (WorldStreamingInit.Instance && WorldStreamingInit.IsLoaded)
+				{
+					Start();
+				}
+			}
+			else
+			{
+				Stop();
+				UnloadWatcher.UnloadRequested -= Stop;
+				WorldStreamingInit.LoadingFinished -= Start;
+				harmony.UnpatchAll(modEntry.Info.Id);
+			}
+			return true;
+		}
 
 		private static void DisconnectFromPersistentJobs()
 		{
@@ -127,19 +127,19 @@ namespace DvMod.RemoteDispatch
 		}
 
 		public static void Log(string message)
-        {
-            mod?.Logger.Log(message);
-        }
+		{
+			mod?.Logger.Log(message);
+		}
 
-        public static void DebugLog(string message)
-        {
-            if (settings.enableLogging)
-                mod?.Logger.Log(message);
-        }
+		public static void DebugLog(string message)
+		{
+			if (settings.enableLogging)
+				mod?.Logger.Log(message);
+		}
 
-        public static void Warning(string message)
-        {
-            mod?.Logger.Warning(message);
-        }
-    }
+		public static void Warning(string message)
+		{
+			mod?.Logger.Warning(message);
+		}
+	}
 }
