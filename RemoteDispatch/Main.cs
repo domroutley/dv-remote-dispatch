@@ -12,10 +12,16 @@ namespace DvMod.RemoteDispatch
         public static UnityModManager.ModEntry? mod;
 
         public static Settings settings = new Settings();
-        public static bool enabled;
-        private static Action<Job>? attachedJobChangedHandler;
+		public static bool enabled;
+		public static bool PersistentJobsHooked;
+		private static object[]? attachedJobChangedHandler;
+		public static MethodInfo? PersJobsJobTrackChangedEventRegMethod;
+		public static MethodInfo? PersJobsJobTrackChangedEventUnregMethod;
+		public static FieldInfo? PersJobsSuspendedCarObjectsDict;
+		public static FieldInfo? PersJobsSuspendedCarGUIDToJobChainControllerDict;
+		public static FieldInfo? PersJobsTrainCarTypeToInterCouplerDistanceDict;
 
-        static public bool Load(UnityModManager.ModEntry modEntry)
+		static public bool Load(UnityModManager.ModEntry modEntry)
         {
             mod = modEntry;
 
@@ -56,7 +62,6 @@ namespace DvMod.RemoteDispatch
                 harmony.PatchAll();
                 WorldStreamingInit.LoadingFinished += Start;
                 UnloadWatcher.UnloadRequested += Stop;
-                ConnectToPersistentJobs();
                 if (WorldStreamingInit.Instance && WorldStreamingInit.IsLoaded)
                 {
                     Start();
@@ -67,62 +72,58 @@ namespace DvMod.RemoteDispatch
                 Stop();
                 UnloadWatcher.UnloadRequested -= Stop;
                 WorldStreamingInit.LoadingFinished -= Start;
-                DisconnectFromPersistentJobs();
                 harmony.UnpatchAll(modEntry.Info.Id);
             }
             return true;
         }
 
-        private static void DisconnectFromPersistentJobs()
-        {
-            EventInfo? jobTracksChanged = GetPersistentJobsTrackChangedEvent();
-            if (jobTracksChanged != null && attachedJobChangedHandler != null)
-            {
-                jobTracksChanged.RemoveEventHandler(null, attachedJobChangedHandler);
-                attachedJobChangedHandler = null;
-                DebugLog("Persistent Jobs event handler removed");
-            }
-        }
+		private static void DisconnectFromPersistentJobs()
+		{
+			PersJobsJobTrackChangedEventUnregMethod?.Invoke(null, attachedJobChangedHandler);
+			attachedJobChangedHandler = null;
+			PersistentJobsHooked = false;
+			DebugLog("Persistent Jobs event handler removed");
+		}
 
-        private static void ConnectToPersistentJobs()
-        {
-            EventInfo? jobTracksChanged = GetPersistentJobsTrackChangedEvent();
-            if (jobTracksChanged != null)
-            {
-                attachedJobChangedHandler = new Action<Job>(JobData.JobPatches.UpdateJobsFromPersistentJobs);
-                jobTracksChanged.AddEventHandler(null, attachedJobChangedHandler);
-                DebugLog("Persistent Jobs found and hooked");
-            }
-        }
+		private static void ConnectToPersistentJobs()
+		{
+			try
+			{
+				PersJobsJobTrackChangedEventRegMethod = AccessTools.Method(AccessTools.TypeByName("PersistentJobsMod.ModInteraction.PersistentJobsModInteractionFeatures"), "RegisterJobTracksChangedListener", new[] { typeof(Action<Job>) });
+				PersJobsJobTrackChangedEventUnregMethod = AccessTools.Method(AccessTools.TypeByName("PersistentJobsMod.ModInteraction.PersistentJobsModInteractionFeatures"), "UnregisterJobTracksChangedListener", new[] { typeof(Action<Job>) });
+				attachedJobChangedHandler = new[] { new Action<Job>(JobData.JobPatches.UpdateJobsFromPersistentJobs) };
+				PersJobsJobTrackChangedEventRegMethod.Invoke(null, attachedJobChangedHandler);
 
-        /// <summary>Gets event exposed by Persistent Jobs for notifications when jobs are modified.</summary>
-        /// <returns>Persistent Jobs mod track changed event if installed, otherwise null.</returns>
-        private static EventInfo? GetPersistentJobsTrackChangedEvent()
-        {
-            return UnityModManager.FindMod("PersistentJobsMod")
-                ?.Assembly
-                ?.GetType("PersistentJobsModInteractionFeatures")
-                ?.GetEvent("JobTracksChanged");
-        }
+				PersJobsSuspendedCarObjectsDict = AccessTools.Field(AccessTools.TypeByName("PersistentJobsMod.Optimization.FarCarOpt"), "SuspendedCarObjects");
+				PersJobsSuspendedCarGUIDToJobChainControllerDict = AccessTools.Field(AccessTools.TypeByName("PersistentJobsMod.Optimization.FarCarOpt"), "SuspendedCarGUIDToJobChainController");
+				PersJobsTrainCarTypeToInterCouplerDistanceDict = AccessTools.Field(AccessTools.TypeByName("PersistentJobsMod.Optimization.FarCarOpt"), "TrainCarTypeToInterCouplerDistance");
 
-        private static void Start()
-        {
-            // Start() is only called once WorldStreamingInit.IsLoaded is true
-            HttpServer.Create();
-            Updater.Create();
-            CarUpdater.Start();
-            SignalsShim.Initialize();
-        }
+				PersistentJobsHooked = true;
+				DebugLog("Persistent Jobs found and hooked");
+			}
+			catch (Exception ex)
+			{
+				Main.DebugLog($"Couldn´t connect to Presistent Jobs - exception thrown: \n{ex}");
+			}
+		}
 
-        private static void Stop()
-        {
-            CarUpdater.Stop();
-            Updater.Destroy();
-            HttpServer.Destroy();
-            SignalsShim.Teardown();
-        }
+		private static void Start()
+		{
+			ConnectToPersistentJobs();
+			HttpServer.Create();
+			Updater.Create();
+			CarUpdater.Start();
+		}
 
-        public static void Log(string message)
+		private static void Stop()
+		{
+			CarUpdater.Stop();
+			Updater.Destroy();
+			HttpServer.Destroy();
+			DisconnectFromPersistentJobs();
+		}
+
+		public static void Log(string message)
         {
             mod?.Logger.Log(message);
         }

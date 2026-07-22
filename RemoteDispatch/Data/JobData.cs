@@ -171,24 +171,21 @@ namespace DvMod.RemoteDispatch
 
         public static class JobPatches
         {
-            [HarmonyPatch(typeof(JobChainController), nameof(JobChainController.UpdateTrainCarPlatesOfCarsOnJob))]
-            public static class UpdateTrainCarPlatesOfCarsOnJobPatch
-            {
-                public static void Postfix(JobChainController __instance, string jobId)
-                {
-                    foreach (Car car in __instance.carsForJobChain)
-                    {
-                        var trainCar = car.TrainCar();
+			[HarmonyPatch(typeof(TrainCar), nameof(TrainCar.UpdateJobIdOnCarPlates))]
+			public static class UpdateJobIdOnCarPlatesPatch
+			{
+				public static void Postfix(TrainCar __instance, string jobId)
+				{
+					if (jobId.Length == 0)
+						jobIdForCar.Remove(__instance);
+					else
+						jobIdForCar[__instance] = jobId;
+					Sessions.AddTag("jobs");
 
-                        if (jobId.Length == 0)
-                            jobIdForCar.Remove(trainCar);
-                        else
-                            jobIdForCar[trainCar] = jobId;
-                        Sessions.AddTag("jobs");
-                    }
-                }
-            }
-            public static void UpdateJobsFromPersistentJobs(Job job)
+				}
+			}
+
+			public static void UpdateJobsFromPersistentJobs(Job job)
             {
                 Main.DebugLog("Persistent Jobs sent update for job " + job.ID);
                 Sessions.AddTag("jobs");

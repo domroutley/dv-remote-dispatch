@@ -1,5 +1,8 @@
+using DV.JObjectExtstensions;
 using DV.LocoRestoration;
+using DV.Logic.Job;
 using DV.ThingTypes;
+using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -79,15 +82,66 @@ namespace DvMod.RemoteDispatch
         {
             return Updater.RunOnMainThread(() =>
             {
-                return TrainCarRegistry.Instance
+				var carDataDict = TrainCarRegistry.Instance
                     .logicCarToTrainCar
                     .Values
                     .Where(car => ShouldReturnTrainCar(car, withLocomotives))
                     .ToDictionary(car => car.ID, car => From(car));
-            }).Result;
+
+				if (Main.PersistentJobsHooked)
+					AddSuspendedCarsData(ref carDataDict);
+				return carDataDict;
+
+			}).Result;
         }
 
-        public static Dictionary<string, JObject> GetTrainsetData(int id)
+		private static void AddSuspendedCarsData(ref Dictionary<string, CarData> carDataDict)
+		{
+			try
+			{
+				var suspendedCarObjects = (Main.PersJobsSuspendedCarObjectsDict?.GetValue(null)) as Dictionary<string, JObject>;
+				var trainCarTypeToInterCouplerDistance = (Main.PersJobsTrainCarTypeToInterCouplerDistanceDict?.GetValue(null)) as Dictionary<TrainCarType, float>;
+				var SuspendedCarGUIDToJobChainController = (Main.PersJobsSuspendedCarGUIDToJobChainControllerDict?.GetValue(null)) as Dictionary<string, JobChainController>;
+
+				if (suspendedCarObjects == null || trainCarTypeToInterCouplerDistance == null || SuspendedCarGUIDToJobChainController == null)
+				{
+					Main.DebugLog($"Failed to access PersJobs dictionaries, won´t show suspended cars!");
+					return;
+				}
+
+				foreach (var item in suspendedCarObjects.Values)
+				{
+					TrainCarType tct = (TrainCarType)item.GetInt("type")!.Value;
+					var guid = item.GetString("carGuid");
+					var id = item.GetString("id");
+
+					if (!trainCarTypeToInterCouplerDistance.TryGetValue(tct, out float interCouplerDistance))
+					{
+						Main.DebugLog($"Warning: TrainCarType {tct} has no saved length.");
+						interCouplerDistance = 15f;
+					}
+
+					Job? currentJobInChain = SuspendedCarGUIDToJobChainController.GetValueSafe(guid)?.currentJobInChain;
+
+					CarData cd = new CarData(
+						guid,
+						interCouplerDistance,
+						new World.Position(item.GetVector3("position")!.Value).ToLatLon(),
+						item.GetVector3("rotation")!.Value.y,
+						currentJobInChain?.ID,
+						currentJobInChain?.chainData.chainDestinationYardId,
+						tct);
+
+					carDataDict[id] = cd;
+				}
+			}
+			catch (Exception ex)
+			{
+				Main.DebugLog($"Failed to include suspended cars in update, exception: \n{ex}");
+			}
+		}
+
+		public static Dictionary<string, JObject> GetTrainsetData(int id)
         {
             return Updater.RunOnMainThread(() =>
             {
