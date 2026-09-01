@@ -9,6 +9,9 @@
 *.csproj text eol=lf
 *.sln text eol=lf
 
+# --- Compile-time reference DLLs: Binary (never convert) ---
+refs/**/*.dll binary
+
 # --- Build Output: Binary (never convert or format) ---
 build/*.dll binary
 build/*.exe binary

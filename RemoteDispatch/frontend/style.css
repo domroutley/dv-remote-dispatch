@@ -83,6 +83,7 @@ table tbody:first-child > tr:first-child td {
   max-height: 100%;
   width: 300px;
   transition: width .5s, max-height .5s;
+  z-index: 1001;
 }
 .leaflet-sidebar-pane {
   min-width: 250px;
@@ -305,3 +306,505 @@ body {
 #sig-filter-sub {
 	transition: opacity 0.15s ease;
 }
+
+#sig-type-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.sig-type-group {
+	padding: 6px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #fafafa;
+}
+
+.sig-type-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.sig-type-faces {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 10px;
+}
+
+.sig-type-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	flex: 0 0 auto;
+}
+
+.sig-type-face {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.sig-type-face-empty {
+	padding: 6px;
+	font-size: 0.72rem;
+	color: #888;
+	font-style: italic;
+	text-align: center;
+}
+
+.sig-type-name {
+	font-weight: 600;
+	font-size: 0.85rem;
+	color: #222;
+}
+
+.sig-type-sub {
+	font-size: 0.7rem;
+	color: #888;
+	white-space: nowrap;
+}
+
+.sig-type-select {
+	max-width: 45%;
+	font-size: 0.8rem;
+	padding: 2px 4px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	background: #fff;
+}
+
+#switchboard-view {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: none;
+	z-index: 999;
+	background: #203050;
+}
+
+#switchboard-map {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 100%;
+	background: #203a5a;
+}
+
+#switchboard-map .leaflet-container {
+	background: #203a5a !important;
+}
+
+body.switchboard-active #switchboard-view {
+	display: block;
+}
+
+body.switchboard-active #map {
+	display: none;
+}
+
+.switchboard-toggle-btn {
+	display: block;
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	border: 1px solid #3a7bd5;
+	border-radius: 4px;
+	background: #3a7bd5;
+	color: #fff;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.switchboard-toggle-btn:hover {
+	background: #2c6dcc;
+	border-color: #2c6dcc;
+}
+
+.switchboard-toggle-btn:active {
+	background: #255bb8;
+}
+
+#pathingStatus {
+	min-height: 18px;
+}
+
+.signal-divicon {
+	background: transparent;
+	border: none;
+}
+
+.sig-sprite {
+	display: block;
+	object-fit: contain;
+	image-rendering: auto;
+}
+
+@keyframes sigBlink {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.15; }
+}
+
+.sig-lamp-blinking {
+	animation: sigBlink 0.8s infinite;
+}
+
+/* signal layout editor (sidebar) */
+
+.sig-filter-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 10px 0 6px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid #ddd;
+}
+
+.sig-filter-header .sig-filter-divider {
+	margin: 0;
+	padding-bottom: 0;
+	border-bottom: none;
+}
+
+.sig-layout-cancel {
+	font-size: 0.72rem;
+	padding: 3px 8px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.sig-layout-cancel:hover {
+	background: #f0f0f0;
+}
+
+.sig-type-face-clickable {
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+.sig-type-face-clickable:hover {
+	outline: 2px solid #6aa9ff;
+	outline-offset: 1px;
+}
+
+.sig-layout-editor {
+	display: inline-block;
+}
+
+.sig-layout-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 4px;
+}
+
+.sig-layout-title {
+	font-size: 0.72rem;
+	color: #888;
+	margin-right: auto;
+}
+
+.sig-layout-reset,
+.sig-layout-save {
+	font-size: 0.72rem;
+	padding: 2px 8px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.sig-layout-reset:hover,
+.sig-layout-save:hover {
+	background: #f0f0f0;
+}
+
+.sig-layout-save {
+	font-weight: 600;
+}
+
+/* Reset and Save stack vertically in the editor toolbar */
+.sig-layout-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.sig-layout-grid {
+	position: relative;
+}
+
+.sig-layout-cell {
+	position: absolute;
+	border: 1px dashed #ccc;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.sig-layout-lamp {
+	position: absolute;
+	border-radius: 50%;
+	border: 1.5px solid #333;
+	cursor: grab;
+	touch-action: none;
+	user-select: none;
+}
+
+.sig-layout-lamp:hover {
+	box-shadow: 0 0 0 2px #6aa9ff;
+}
+
+.sig-layout-lamp.dragging {
+	cursor: grabbing;
+	z-index: 1;
+	box-shadow: 0 0 0 2px #6aa9ff;
+}
+
+.sig-layout-status {
+	font-size: 0.72rem;
+	color: #c0392b;
+	margin-top: 4px;
+	min-height: 1em;
+}
+
+.sig-layout-lamp-bar {
+	border-radius: 4px;
+}
+
+/* palette strip above the editor grid */
+
+.sig-layout-palette {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 4px;
+}
+
+.sig-layout-palette-label {
+	font-size: 0.72rem;
+	color: #888;
+	margin-right: 2px;
+}
+
+.sig-layout-palette-item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 24px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	cursor: grab;
+	touch-action: none;
+	user-select: none;
+}
+
+.sig-layout-palette-item:hover {
+	background: #f0f0f0;
+}
+
+.sig-layout-palette-item.dragging {
+	opacity: 0.4;
+}
+
+.sig-layout-palette-preview {
+	display: block;
+	background: #777;
+}
+
+.sig-layout-palette-preview-circle {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+}
+
+.sig-layout-palette-preview-bar {
+	width: 22px;
+	height: 6px;
+	border-radius: 3px;
+}
+
+.sig-layout-ghost {
+	position: fixed;
+	pointer-events: none;
+	z-index: 12000;
+	opacity: 0.9;
+	background: #fff;
+	border: 1.5px dashed #333;
+}
+
+.sig-ghost-circle {
+	border-radius: 50%;
+}
+
+.sig-ghost-bar {
+	border-radius: 4px;
+}
+
+/* aspect × lamp table below the editor grid */
+
+/* The aspect × lamp table floats in its own window over the map (centered by
+   positionFloatingMatrix), clear of the sidebar. */
+.sig-layout-matrix-wrap {
+	position: fixed;
+	z-index: 13000;
+	max-width: 50vw;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+	padding: 8px;
+	overflow: auto;
+}
+
+.sig-layout-matrix-title {
+	font-size: 0.72rem;
+	color: #888;
+	margin-bottom: 3px;
+}
+
+.sig-layout-matrix {
+	border-collapse: collapse;
+	font-size: 0.72rem;
+	/* Content width so the floating window is only as wide as the table needs. */
+	width: fit-content;
+	max-width: none;
+}
+
+.sig-layout-matrix-hint {
+	font-size: 0.72rem;
+	color: #888;
+	font-style: italic;
+	margin-top: 6px;
+}
+
+.sig-layout-matrix th,
+.sig-layout-matrix td {
+	border: 1px solid #ddd;
+	padding: 2px;
+}
+
+.sig-layout-matrix th {
+	color: #555;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.sig-layout-matrix .sig-lamp-col {
+	position: sticky;
+	left: 0;
+	background: #fafafa;
+	white-space: nowrap;
+	z-index: 1;
+}
+
+.sig-lamp-swatch {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 1px solid #999;
+	border-radius: 3px;
+	vertical-align: middle;
+}
+
+.sig-lamp-colour {
+	font-size: 0.7rem;
+	max-width: 76px;
+	padding: 1px 2px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	background: #fff;
+	vertical-align: middle;
+}
+
+.sig-lamp-name {
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0 3px;
+	max-width: 80px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sig-lamp-shape {
+	vertical-align: middle;
+	color: #888;
+}
+
+.sig-lamp-remove {
+	border: none;
+	background: none;
+	color: #c0392b;
+	font-size: 0.9rem;
+	line-height: 1;
+	cursor: pointer;
+	padding: 0 2px;
+	vertical-align: middle;
+}
+
+.sig-lamp-remove:hover {
+	color: #7a1f14;
+}
+
+.sig-aspect-cell {
+	display: block;
+	width: 26px;
+	height: 18px;
+	padding: 0;
+	background: #2a2a2a;
+	border: 1px solid #555;
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+.sig-aspect-on {
+	border-color: #777;
+}
+
+.sig-aspect-blink {
+	animation: sigBlink 0.8s infinite;
+	border-style: dashed;
+}
+
+.sig-switchboard-row td {
+	border-top: 1px solid #446;
+}
+
+.sig-switchboard-cell {
+	border-color: #339;
+}
+
+.sig-switchboard-set {
+	border-color: #9cf;
+}
+
+@keyframes sigLampRowPulse {
+	0%, 100% { background: transparent; }
+	50% { background: #fff3b0; }
+}
+
+.sig-lamp-row-new {
+	animation: sigLampRowPulse 0.9s ease 2;
+}
+
+
+
+.sig-layout-scroll {
+	overflow-x: auto;
+}
+

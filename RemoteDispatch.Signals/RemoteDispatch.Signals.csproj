@@ -1,30 +1,61 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>8.0</LangVersion>
+		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<RootNamespace>DvMod.RemoteDispatch.Signals</RootNamespace>
-		<SignalsDllPath>$(DvInstallDir)\Mods\DVSignals\Signals.API.dll</SignalsDllPath>
+		<AssemblyName>RemoteDispatch.Signals</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="UnityEngine.CoreModule" />
-		<Reference Include="Newtonsoft.Json" />
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(ManagedPath)/UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AnimationModule">
+			<HintPath>$(ManagedPath)/UnityEngine.AnimationModule.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="UnityEngine.ImageConversionModule">
+			<HintPath>$(ManagedPath)/UnityEngine.ImageConversionModule.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>$(ManagedPath)/Newtonsoft.Json.dll</HintPath>
+		</Reference>
+		<Reference Include="DV.RailTrack">
+			<HintPath>$(ManagedPath)/DV.RailTrack.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>$(ManagedPath)/Assembly-CSharp.dll</HintPath>
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</Reference>
+		<Reference Include="DV.Utils">
+			<HintPath>$(ManagedPath)/DV.Utils.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
 		<PackageReference Include="UnityModManager" Version="0.27.2" />
 	</ItemGroup>
 
-	<!-- Signals -->
+	<!-- Signals.Game (new fork): compile-time refs kept in refs/new/ so the project
+	     builds without the new DVSignals mod being installed. At runtime the mod's
+	     own Signals.Game.dll / Signals.Common.dll are used; these are not copied to output. -->
 	<ItemGroup>
-		<Reference Include="Signals.API">
-			<HintPath>$(SignalsDllPath)</HintPath>
-			<!-- Do not copy Signals.API.dll to the output directory, we just need it for compile time reference. -->
+		<Reference Include="Signals.Game">
+			<HintPath>$(MSBuildThisFileDirectory)..\refs\new\Signals.Game.dll</HintPath>
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</Reference>
+		<Reference Include="Signals.Common">
+			<HintPath>$(MSBuildThisFileDirectory)..\refs\new\Signals.Common.dll</HintPath>
 			<Private>false</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</Reference>
 	</ItemGroup>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows_NT'">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<!-- Drop the output DLL into the root build\ folder -->
 		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MSBuildThisFileDirectory)..\build\" />
 	</Target>

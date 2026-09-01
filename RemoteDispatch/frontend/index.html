@@ -5,13 +5,19 @@
 	<link rel="icon" href="res/icon.svg">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css" integrity="sha256-BPfK9M5v34c2XP6p0cxVz1mUQLst0gTLk0mlc7kuodA=" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-sidebar-v2@3.2.3/css/leaflet-sidebar.min.css" integrity="sha256-10dwwxs/pdWEYoC56aJvmY3kbMMa9/3uSWWNkGcrGq8=" crossorigin="anonymous">
-	<link rel="stylesheet" href="res/style.css">
+	<link rel="stylesheet" href="res/style.css?v=20260830a">
 	<script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/js/all.min.js" integrity="sha256-gSqw5G+Gss6YqyQlqyIkuQ0IRZUqGsDVq9c0tiF+mL8=" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet-src.js" integrity="sha256-dG7rUAec0UN0e3nlMEuYJzsbK0rpoz4hBbNp0ir9iF8=" crossorigin="anonymous"></script>
 	<script src="res/leaflet.rotatedImageOverlay.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/leaflet-sidebar-v2@3.2.3/js/leaflet-sidebar.min.js" integrity="sha256-4r81BYKeNxSG+nrK/UPQq75pDlH+GkiZn/zc/xkNMLA=" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/@zerowastemap/leaflet.zoomhome@1.0.0/index.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/tablesort@5.2.1/src/tablesort.js" integrity="sha256-ams/0yjSE7HGIRWB/A3VtW3Z24eOT+5z0z9d1pms7T4=" crossorigin="anonymous"></script>
+	<script src="res/switchboard-data.js?v=20260807d"></script>
+	<script src="res/switchboard-renderer.js?v=20260823a"></script>
+	<script src="res/switchboard-mapper.js?v=20260807d"></script>
+	<script src="res/switchboard-signals.js?v=20260826a"></script>
+	<script src="res/switchboard-occupation.js?v=20260807d"></script>
+	<script src="res/switchboard-pathing.js?v=20260830b"></script>
 </head>
 <body>
 	<div id="sidebar" class="leaflet-sidebar collapsed">
@@ -21,6 +27,7 @@
 				<li><a href="#locoFilterTab" role="tab"><i class="fas fa-eye" title="Loco select"></i></a></li>
 				<li><a href="#jobsTab" role="tab"><i class="fas fa-clipboard-list" title="Jobs"></i></a></li>
 				<li><a href="#locoControlTab" role="tab"><i class="fas fa-gamepad" title="Loco Control"></i></a></li>
+				<li><a href="#switchboardTab" role="tab"><i class="fas fa-exchange-alt" title="Switchboard"></i></a></li>
 				<li><a href="#settingsTab" role="tab"><i class="fas fa-cog" title="Settings"></i></a></li>
 				<li><a href="#signals-sidebar" role="tab"><i class="fas fa-traffic-light" title="Signals"></i></a></li>
 			</ul>
@@ -108,6 +115,23 @@
 					<!-- Populated by buildSignalsSidebar() after signalsReady resolves -->
 				</div>
 			</div>
+	<div class="leaflet-sidebar-pane" id="switchboardTab">
+		<h1 class="leaflet-sidebar-header">
+			Switchboard
+			<span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
+		</h1>
+		<div style="margin-bottom: 8px;">
+			<label for="hardcoreModeToggle">Hardcore mode:</label>
+			<input type="checkbox" id="hardcoreModeToggle" style="margin-left: 6px;">
+		</div>
+		<div style="margin-bottom: 8px;">
+			<label for="signalAspectsToggle">Signal aspects:</label>
+			<input type="checkbox" id="signalAspectsToggle" style="margin-left: 6px;" checked>
+		</div>
+		<div id="pathingStatus" style="margin-bottom: 8px; font-size: 12px; color: #aaa;">Pathing: disabled</div>
+		<div id="pathList" style="margin-bottom: 8px; font-size: 12px;"></div>
+		<button id="switchboardToggle" class="switchboard-toggle-btn">Show Switchboard</button>
+	</div>
 			<div class="leaflet-sidebar-pane" id="settingsTab">
 				<h1 class="leaflet-sidebar-header">
 					Settings
@@ -120,6 +144,15 @@
 							<select name="theme" id="themeDropdown">
 								<option value="dark">Dark</option>
 								<option value="light">Light</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="signalStyleDropdown">Signal style</label></th>
+						<td>
+							<select name="signalStyle" id="signalStyleDropdown">
+								<option value="lamps">Lamps (SVG)</option>
+								<option value="pictures">Pictures (sprite)</option>
 							</select>
 						</td>
 					</tr>
@@ -147,10 +180,13 @@
 		</div>
 	</div>
 	<div id="map" class="dark" style="height:100vh"></div>
+	<div id="switchboard-view">
+		<div id="switchboard-map"></div>
+	</div>
 	<div id="search">
 		<input id="searchInput" type="text" placeholder="Go to…" autocomplete="off">
 		<ul id="searchResults"></ul>
 	</div>
-	<script src="res/main.js"></script>
+	<script src="res/main.js?v=20260830b"></script>
 </body>
 </html>

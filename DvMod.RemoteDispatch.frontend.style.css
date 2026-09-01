@@ -1,0 +1,342 @@
+th[role=columnheader]:not(.no-sort) {
+  cursor: pointer;
+}
+th[role=columnheader]:not(.no-sort):after {
+  content: '';
+  float: right;
+  margin-top: 7px;
+  border-width: 0 4px 4px;
+  border-style: solid;
+  border-color: #404040 transparent;
+  visibility: hidden;
+  opacity: 0;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+th[aria-sort=ascending]:not(.no-sort):after {
+  border-bottom: none;
+  border-width: 4px 4px 0;
+}
+th[aria-sort]:not(.no-sort):after {
+  visibility: visible;
+  opacity: 0.4;
+}
+th[role=columnheader]:not(.no-sort):hover:after {
+  visibility: visible;
+  opacity: 1;
+}
+table {
+  background:#fff;
+  max-width:100%;
+  border-spacing:0;
+  width:100%;
+  margin:10px 0;
+  border:1px solid #ddd;
+  border-collapse:separate;
+  -webkit-box-shadow:0 0 4px rgba(0,0,0,0.10);
+	 -moz-box-shadow:0 0 4px rgba(0,0,0,0.10);
+		  box-shadow:0 0 4px rgba(0,0,0,0.10);
+}
+table th,
+table td {
+  padding:3px;
+  line-height:18px;
+  text-align:left;
+  border-top:2px solid #ddd;
+}
+table th {
+  background:#eee;
+  background:-webkit-gradient(linear, left top, left bottom, from(#f6f6f6), to(#eee));
+  background:-moz-linear-gradient(top, #f6f6f6, #eee);
+  font-weight:bold;
+  vertical-align:bottom;
+}
+table td {
+  vertical-align:top;
+}
+table thead:first-child tr th,
+table thead:first-child tr td {
+  border-top:0;
+}
+table tbody + tbody {
+  border-top:2px solid #ddd;
+}
+table th + th,
+table td + td,
+table th + td,
+table td + th {
+  border-left:1px solid #ddd;
+}
+table thead:first-child > tr:first-child th,
+table tbody:first-child > tr:first-child th,
+table tbody:first-child > tr:first-child td {
+  border-top:0;
+}
+
+.leaflet-sidebar.collapsed {
+  /* Each icon is 40 px in height */
+  max-height: 240px;
+}
+.leaflet-sidebar {
+  max-height: 100%;
+  width: 300px;
+  transition: width .5s, max-height .5s;
+}
+.leaflet-sidebar-pane {
+  min-width: 250px;
+  max-width: 250px;
+  padding: 10px;
+}
+.leaflet-sidebar-left~.leaflet-control-container .leaflet-left {
+  left:310px;
+}
+
+.leaflet-sidebar-tabs a {
+  font: bold 32px "Lucida Console","Monaco",monospace;
+}
+.leaflet-sidebar-tabs svg {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.leaflet-touch .leaflet-bar a {
+  height: 36px;
+  width: 36px;
+  line-height: 36px;
+}
+.gin-control-zoom {
+  font: bold 24px "Lucida Console","Monaco",monospace;
+}
+.gin-control-zoom svg {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%)
+}
+
+.interactive {
+  cursor: pointer;
+}
+tbody.following {
+  box-shadow: -4px 0px steelblue;
+}
+td.following {
+  background: lightsteelblue;
+}
+img.leaflet-sidebar-tab-icon32 {
+  margin: 4px;
+}
+.leaflet-container.dark {
+  background: #222;
+}
+body {
+  margin: 0px;
+}
+
+.jobList-trackSeparator {
+  text-align: center;
+}
+.jobList-jobHeader {
+  position: relative;
+  border-top: black solid 4px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.jobList-licenses {
+  position: absolute;
+  height: 24px;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.jobList-license {
+  position: relative;
+  display: inline flow-root;
+  margin-right: 4px;
+}
+.jobList-licenseBackground {
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: whitesmoke;
+}
+.jobList-license img {
+  position: relative;
+  height: 24px;
+  z-index: 1;
+}
+
+#locoControlLocoId {
+  width: 4em;
+}
+#locoControlControls label {
+  display: inline-block;
+  width: 5em;
+}
+.locoControlButton {
+  font-size: 16pt;
+  cursor: pointer;
+}
+.locoControlButton:hover {
+  background-color: lightgray
+}
+.locoControlButton:active {
+  background-color: lightblue;
+}
+#jobsTab input {
+	float:left;
+	clear:left;
+}
+#jobsTab label {
+	float:left;
+	clear: left;
+}
+#jobList {
+	clear: left;
+}
+
+#search {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 1000;
+	background: rgba(244, 244, 244,0.75);
+	border-radius: 6px;
+	padding: 6px;
+	min-width: 200px;
+}
+
+#searchInput {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 4px 8px;
+	font-size: 14px;
+	border: none;
+	border-radius: 4px;
+	background: #222;
+	color: white;
+}
+
+#searchResults {
+	list-style: none;
+	margin: 4px 0 0;
+	padding: 0;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+#searchResults li {
+	padding: 4px 8px;
+	color: black;
+	cursor: pointer;
+	border-radius: 4px;
+	font-size: 13px;
+}
+
+#searchResults li:hover, #searchResults li.active {
+	background: rgba(255,255,255,0.2);
+}
+
+.sig-filter-section {
+	padding: 10px 14px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+	.sig-filter-section:last-child {
+		border-bottom: none;
+	}
+
+.sig-filter-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+	cursor: pointer;
+	font-size: 0.88rem;
+	user-select: none;
+	line-height: 1.3;
+}
+
+	.sig-filter-label input[type="checkbox"] {
+		flex-shrink: 0;
+		width: 14px;
+		height: 14px;
+		cursor: pointer;
+		accent-color: #3a7bd5;
+	}
+
+.sig-filter-master {
+	font-weight: 600;
+	font-size: 0.9rem;
+	padding: 2px 0 6px;
+}
+
+.sig-filter-divider {
+	margin: 10px 0 6px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: #888;
+	border-bottom: 1px solid #ddd;
+	padding-bottom: 4px;
+}
+
+.sig-filter-yard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+	gap: 2px 4px;
+}
+
+	.sig-filter-yard-grid .sig-filter-label {
+		padding: 3px 4px;
+		border-radius: 3px;
+		transition: background 0.1s;
+	}
+
+		.sig-filter-yard-grid .sig-filter-label:hover {
+			background: rgba(0, 0, 0, 0.05);
+		}
+
+#sig-filter-sub {
+	transition: opacity 0.15s ease;
+}
+
+#switchboard-view {
+	position: absolute;
+	top: 0;
+	left: 310px;
+	right: 0;
+	bottom: 0;
+	display: none;
+	z-index: 999;
+	background: #222;
+}
+
+#switchboard-map {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 100%;
+}
+
+#switchboard-info {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
+	z-index: 1000;
+	background: rgba(244, 244, 244, 0.75);
+	border-radius: 6px;
+	padding: 6px 12px;
+	max-width: 400px;
+}
+
+body.switchboard-active #switchboard-view {
+	display: block;
+}

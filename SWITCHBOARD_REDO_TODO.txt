@@ -1,0 +1,315 @@
+================================================================================
+SWITCHBOARD FEATURE REIMPLEMENTATION - COMPREHENSIVE TODO LIST
+================================================================================
+
+OVERVIEW:
+---------
+This document outlines the complete plan for redoing the switchboard feature
+for Derail Valley Remote Dispatch. It incorporates lessons learned from 21
+previous commits to avoid known pitfalls and ensure a smooth implementation.
+
+KEY LESSONS FROM HISTORY (MUST ADDRESS):
+----------------------------------------
+1. Embedded resources require FULLY QUALIFIED names: "RemoteDispatch.frontend.res.file"
+2. Coordinate systems differ between game world and canvas - x/y axes reversed
+3. BFS must track EDGE visits, not NODE visits (critical bug in original)
+4. Use GAME JUNCTION INDICES throughout entire stack
+5. Backend-only BFS implementation (avoid code duplication with frontend) ??
+
+================================================================================
+PHASE 1: DATA LAYER & CONFIGURATION
+================================================================================
+
+[ ] 1.1 Verify/Update RemoteDispatch.csproj
+     - Ensure all frontend/res files have Build Action = "Embedded Resource"
+     - List required resources explicitly:
+       * frontend/res/switchboard-layout.json
+       * frontend/res/switchboard-data.js  
+       * frontend/res/switchboard-renderer.js
+       * frontend/main.js (if embedded)
+     - TEST: Try loading each resource with fully qualified name
+
+[ ] 1.2 Define Track Topology Data Structure (switchboard-layout.json)
+     - Format: Array of track objects, each containing:
+       {
+         "id": <unique_track_id>,
+         "gameJunctionIndices": [<start_junction_idx>, <end_junction_idx>],
+         "segments": [[x1,y1], [x2,y2], ...]  // normalized coordinates 0-100
+       }
+     - CRITICAL: gameJunctionIndices MUST match actual indices from
+       RailTrackRegistry.Instance.OrderedJunctions (zero-based)
+     - NO derived/calculated indices - use raw game data indices only
+
+[ ] 1.3 Define Switch State Data Structure
+     - Map each track to its possible switch states
+     - Format: { "trackId": ["stateA", "stateB"], ... }
+     - States correspond to which endpoints are connected when switch toggles
+
+================================================================================
+PHASE 2: BACKEND IMPLEMENTATION (C#)
+================================================================================
+
+[ ] 2.1 JunctionMapper.cs - Core Graph Building
+     - Method: BuildTrackGraph()
+       * Input: RailTrackRegistry.Instance.OrderedJunctions
+       * Output: Dictionary<gameJunctionIdx, List<connectedJunctionIdx>>
+       * Use HashSet for visited tracking to avoid duplicates
+     
+     - Method: ExtractSwitchboardTracks()
+       * Identify which junction pairs form switchable tracks
+       * Return list of (trackId, [junctionA_idx, junctionB_idx]) tuples
+       * CRITICAL: Store RAW game indices, do NOT remap or offset
+
+[ ] 2.2 JunctionMapper.cs - BFS Pathfinding Algorithm
+     - Method: FindPathsWithSwitchStates(startJunctionIdx, targetJunctionIdx)
+       * Returns: List of (path, switchStateMap) tuples
+       
+     - CRITICAL FIX FROM HISTORY: Track EDGE visits, not NODE visits!
+       * WRONG: HashSet<int> visitedNodes
+       * CORRECT: HashSet<(int fromNode, int toNode)> visitedEdges
+       * Reason: Same junction can be reached via different switches/states
+       
+     - Algorithm outline:
+       Queue<(List<int> path, Dictionary<string,string> switchStates)> queue;
+       HashSet<(int, int)> visitedEdges;  // <-- KEY FIX
+       
+       while queue not empty:
+         pop (path, states)
+         current = path.Last()
+         
+         if current == target: return (path, states)
+         
+         foreach neighbor of current:
+           edge = (current, neighbor)
+           if edge NOT in visitedEdges:
+             mark edge as visited
+             newStates = states + any switch changes
+             push (path + [neighbor], newStates)
+
+[ ] 2.3 JunctionMapper.cs - Switch State Mapping
+     - Method: GetSwitchMappingForTrack(trackId)
+       * Input: track identifier
+       * Output: Dictionary<gameJunctionIdx, List<path_with_switch_states>>
+       
+     - For each game junction, compute all reachable paths with their switch configs
+     - Cache results to avoid recomputation on every request
+
+[ ] 2.4 HttpServer.cs - API Endpoints
+     - Endpoint: GET /junctionMapping/build
+       * Triggers full graph rebuild from current game state
+       * Returns: { "trackCount": N, "junctionCount": M }
+       
+     - Endpoint: GET /switchboard/data
+       * Returns complete switchboard data structure:
+         {
+           "tracks": [...],
+           "switchMappings": {...},
+           "currentSwitchStates": {...}
+         }
+         
+     - Endpoint: GET /res/{path}
+       * CRITICAL: Use fully qualified resource name
+       * Format: $"RemoteDispatch.{path.Replace('/', '.')}"
+       * Example: "/res/frontend/res/switchboard-layout.json" 
+                 -> "RemoteDispatch.frontend.res.switchboard-layout.json"
+
+================================================================================
+PHASE 3: FRONTEND DATA LAYER (JavaScript)
+================================================================================
+
+[ ] 3.1 switchboard-data.js - Data Structures
+     - Class TrackData:
+       * Properties: id, gameJunctionIndices[], segments[]
+       * Methods: getEndpoints(), isSwitchable()
+       
+     - Class SwitchMapping:
+       * Property: junctionToPaths Map<junctionIdx, Array<{path, states}>>
+       * Methods: 
+         - getPathsForJunction(junctionIdx)
+         - getRequiredSwitchStates(pathIndex)
+         
+     - Global state management:
+       * currentSwitchStates: Object<switchId, stateValue>
+       * activeTrackId: string | null
+
+[ ] 3.2 switchboard-data.js - Data Loading
+     - Function: loadSwitchboardData()
+       * Fetch from /switchboard/data endpoint
+       * Parse and populate TrackData instances
+       * Initialize SwitchMapping with junction->paths mappings
+       * Return Promise<void>
+       
+     - Function: syncWithBackend()
+       * Re-fetch data when game state changes
+       * Update only changed portions (optimization)
+
+================================================================================
+PHASE 4: FRONTEND RENDERING (JavaScript)  
+================================================================================
+
+[ ] 4.1 switchboard-renderer.js - Coordinate System Setup
+     - CRITICAL: Handle coordinate system conversion!
+     
+     - Game world coordinates vs Canvas coordinates:
+       * Game: x increases right, y increases UP (or DOWN?)
+       * Canvas/Leaflet: x increases right, y increases DOWN
+       
+     - Conversion function MUST be tested empirically:
+       function convertGameToCanvas(gameX, gameY):
+         // Based on commit history: axes were REVERSED
+         return { x: gameY, y: gameX }  // or similar transformation
+         
+     - Normalization to 0-100 range for layout data:
+       * Find min/max of all junction coordinates
+       * Scale each coordinate: normalized = (value - min) / (max - min) * 100
+
+[ ] 4.2 switchboard-renderer.js - Track Rendering
+     - Function: renderTrack(trackData, highlight=false)
+       * Draw path using Leaflet Polyline or canvas paths
+       * Apply coordinate conversion to each segment point
+       * Highlight active/selected tracks differently
+       
+     - Function: renderSwitchIndicators()
+       * Show visual indicators for switchable track segments
+       * Display current state (A/B or similar)
+
+[ ] 4.3 switchboard-renderer.js - Path Visualization
+     - Function: renderPath(pathJunctionIndices, highlight=true)
+       * Find and draw the complete path through multiple tracks
+       * Show which switches must be set for this path
+       
+     - Function: renderSwitchStateChanges(requiredStates)
+       * Animate or highlight switches that need to change
+       * Show before/after states clearly
+
+================================================================================
+PHASE 5: INTEGRATION & UI (JavaScript)
+================================================================================
+
+[ ] 5.1 main.js - Switchboard View Toggle
+     - Add button/control to switch between map view and switchboard view
+     - On toggle TO switchboard:
+       * Call loadSwitchboardData() if not loaded
+       * Initialize renderer with proper dimensions
+       * Show switchboard container, hide map
+       
+     - On toggle FROM switchboard:
+       * Hide switchboard container, show map
+       * Optionally cleanup/destroy renderer instances
+
+[ ] 5.2 main.js - Event Handling
+     - Track selection click handler
+     - Switch state toggle handler (if user can manually set switches)
+     - Path finding request handler (user selects start/end junctions)
+
+[ ] 5.3 main.js - Game State Sync
+     - Listen for game state change events
+     * Call syncWithBackend() when tracks/switches change
+     * Update frontend data structures incrementally
+
+================================================================================
+PHASE 6: TESTING & VALIDATION
+================================================================================
+
+[ ] 6.1 Backend Unit Tests
+     - Test BuildTrackGraph() with known junction data
+     - Test FindPathsWithSwitchStates() - verify EDGE tracking works
+       * Create test case where same node reached via different edges
+       * Verify both paths are found (not pruned prematurely)
+     - Test embedded resource loading for all required files
+
+[ ] 6.2 Frontend Unit Tests  
+     - Test coordinate conversion with known input/output pairs
+     - Test TrackData parsing from JSON
+     - Test SwitchMapping path lookup
+
+[ ] 6.3 Integration Tests
+     - Full flow: backend builds graph -> frontend loads -> renders correctly
+     - Verify junction indices match between backend and frontend
+     - Test switch state changes propagate correctly
+
+[ ] 6.4 Visual Validation
+     - Compare rendered switchboard with actual game layout
+     - Verify all tracks are present and correctly positioned
+     - Test path highlighting for various start/end combinations
+
+================================================================================
+PHASE 7: DEBUGGING & TROUBLESHOOTING CHECKLIST
+================================================================================
+
+If things don't work, check these FIRST (based on history):
+
+[ ] Resource loading fails?
+     - Verify Build Action = "Embedded Resource" in .csproj  
+     - Check fully qualified name format: "RemoteDispatch.frontend.res.X"
+     - Try: Assembly.GetExecutingAssembly().GetManifestResourceNames()
+       to list all embedded resources
+
+[ ] Tracks rendered at wrong positions/angles?
+     - Print game coordinates vs canvas coordinates side by side
+     - Try swapping x/y: {x: y, y: x}
+     - Try inverting axes: {x: width-x, y: height-y}
+     - Check normalization is applied correctly
+
+[ ] BFS returns incomplete/wrong paths?
+     - VERIFY you're tracking EDGES not NODES in visited set
+     - Add debug logging to show which edges are being pruned
+     - Test with simple 3-junction case first
+
+[ ] Frontend shows different data than backend?
+     - Print junction indices from both sides
+     - Ensure NO offset calculations anywhere (use raw game indices)
+     - Check JSON serialization/deserialization preserves values
+
+[ ] Switch states don't match expected paths?
+     - Log switch state at each BFS step
+     - Verify switch state encoding is consistent backend->frontend
+     - Test with single-switch track first
+
+================================================================================
+IMPLEMENTATION ORDER RECOMMENDATION
+================================================================================
+
+Recommended sequence to minimize rework:
+
+1. PHASE 1 (Data) - Get the data structures right first
+2. PHASE 2.1-2.2 (Backend core) - Graph building + BFS algorithm  
+3. PHASE 6.1 (Backend tests) - Verify backend works before frontend
+4. PHASE 2.3-2.4 (Backend API) - Expose data via HTTP
+5. PHASE 3 (Frontend data) - Load and parse backend data
+6. PHASE 4.1 (Coordinate conversion) - CRITICAL: get this right early
+7. PHASE 4.2-4.3 (Rendering) - Visual output
+8. PHASE 5 (Integration) - Tie it all together  
+9. PHASE 6.2-6.4 (Full testing) - End-to-end validation
+
+================================================================================
+KEY FILES TO MODIFY/CREATE
+================================================================================
+
+Backend:
+- RemoteDispatch/Data/JunctionMapper.cs (main logic)
+- RemoteDispatch/Server/HttpServer.cs (endpoints)  
+- RemoteDispatch/RemoteDispatch.csproj (embedded resources)
+
+Frontend:
+- RemoteDispatch/frontend/res/switchboard-layout.json (data definition)
+- RemoteDispatch/frontend/res/switchboard-data.js (data management)
+- RemoteDispatch/frontend/res/switchboard-renderer.js (rendering)
+- RemoteDispatch/frontend/main.js (integration)
+
+Tests:
+- [Create new test files as needed]
+
+================================================================================
+NOTES & REMINDERS
+================================================================================
+
+* The BFS edge-tracking bug cost 3+ commits to fix - get it right first time!
+* Embedded resource naming was wrong for 6 commits - double-check format
+* Coordinate system flip was subtle - test with asymmetric track layout
+* Index consistency is critical - any offset breaks everything downstream
+* Consider adding debug mode that logs all indices/coordinates for comparison
+
+================================================================================
+END OF TODO LIST
+================================================================================

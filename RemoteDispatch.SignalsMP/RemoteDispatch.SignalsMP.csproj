@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>9.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<RootNamespace>DvMod.RemoteDispatch.Signals</RootNamespace>
+		<AssemblyName>RemoteDispatch.SignalsMP</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(ManagedPath)/UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>$(ManagedPath)/Newtonsoft.Json.dll</HintPath>
+		</Reference>
+		<Reference Include="DV.RailTrack">
+			<HintPath>$(ManagedPath)/DV.RailTrack.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<PackageReference Include="UnityModManager" Version="0.27.2" />
+	</ItemGroup>
+
+	<!-- Signals.API (old fork: 1.1.3-mp / 1.1.4-mp) -->
+	<ItemGroup>
+		<Reference Include="Signals.API">
+			<HintPath>$(MSBuildThisFileDirectory)..\refs\Signals.API.dll</HintPath>
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</Reference>
+		<Reference Include="Signals.Common">
+			<HintPath>$(MSBuildThisFileDirectory)..\refs\Signals.Common.dll</HintPath>
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<!-- Drop the output DLL into the root build\ folder -->
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MSBuildThisFileDirectory)..\build\" />
+	</Target>
+
+</Project>

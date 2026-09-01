@@ -13,7 +13,7 @@ namespace DvMod.RemoteDispatch
         private static readonly TimeSpan SessionTimeout = TimeSpan.FromMinutes(5);
         private static readonly object allSesssionsLock = new object();
         private static readonly Dictionary<string, Session> allSessions = new Dictionary<string, Session>();
-        private static readonly HashSet<string> BaseTags = new HashSet<string>() { "cars", "jobs", "junctions", "player", "signals" };
+		private static readonly HashSet<string> BaseTags = new HashSet<string>() { "cars", "jobs", "junctions", "player", "signals", "signalpack", "occupancy", "paths" };
 
         public static event Action<string>? OnSessionStarted;
         public static event Action<string>? OnSessionEnded;
@@ -152,10 +152,36 @@ namespace DvMod.RemoteDispatch
                 "junctions" => new JArray(Junctions.GetAllJunctionStates()),
                 "player" => PlayerData.GetPlayerData(),
                 "playerNull" => new JObject(),
-                "signals" => Main.settings.featureFlags.enableSignals ? SignalsShim.GetAllSignalsData() : new JObject(),
+			"signals" => Main.settings.featureFlags.enableSignals ? SignalsShim.GetAllSignalsData() : new JObject(),
+		"signalpack" => Main.settings.featureFlags.enableSignals ? ParsePackTableJson() : new JObject(),
+		"paths" => PathingData.GetPathsJson(),
+		"modconfig" => new JObject { ["enablePathing"] = Main.settings.featureFlags.enablePathing },
+
+			"occupancy" => JObject.FromObject(OccupancyData.GetOccupancyData().ToDictionary(
+				kvp => kvp.Key,
+				kvp => kvp.Value.HasValue ? (JToken)new JValue(kvp.Value.Value) : (JToken)JValue.CreateNull())),
                 _ when tag.Contains('-') => GetUpdateForSplitTag(tag),
                 _ => throw new NotImplementedException($"Unexpected update tag {tag}"),
             };
+        }
+
+        /// <summary>
+        /// Parses the pack table JSON string into a JToken so the SSE payload carries a real
+        /// object, not a double-escaped string. Returns an empty object on failure.
+        /// </summary>
+        private static JToken ParsePackTableJson()
+        {
+            try
+            {
+                var json = SignalsShim.GetPackTableJson();
+                if (string.IsNullOrEmpty(json) || json == "{}") return new JObject();
+                return JObject.Parse(json);
+            }
+            catch (Exception ex)
+            {
+                Main.Warning($"Failed to parse pack table JSON for update: {ex.Message}");
+                return new JObject();
+            }
         }
 
         private static string GetFrontendTagName(string tag)

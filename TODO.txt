@@ -1,0 +1,18 @@
+[x] get the project to compile
+[ ] Phase 2: Basic Rendering Integration // basics are done but details...
+	[x] 2.1 Add switchboard tab to main frontend UI
+	[x] 2.2 Create switchboard content pane
+	[x] 2.3 Load and integrate sample data (RD_1.0.2.json )
+	[ ] Changing block state update order
+	[ ] Fix switch rim colour
+	[ ] Handle edge cases with misalignment
+	[ ] Shadowing previous states
+	[ ] 2.4 Move switchboard rendering out of sidebar into full-screen view
+
+[ ] Phase 3 switch mappings
+	[x] switch to Junction mapping
+	[x] signal mapping
+	[ ] left right In signal distinction
+	[ ] Signal forwarding
+	[ ] Proper fix for browser JS caching / duplicate mapping (replace
+
